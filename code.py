@@ -17,29 +17,26 @@ def show_board(game_board):
     print(bottom)
 
 def choice_maker(game_board, role):
-    """This function is used for the player to make choices"""
     while True:
         try:
-            choice = int(input("Enter the block you want to place your move in (1-9) : "))
+            choice = int(input("Enter the block you want to place your move in (1–9) : "))
         except ValueError:
-            print("Please enter a valid integer. (1-9)")
+            print("Please enter a valid integer.")
             continue
 
         if not 1 <= choice <= 9:
-            print("You can only choose a number from 1 to 9.")
+            print("Choose a number between 1 and 9.")
             continue
 
-        # Convert 1–9 into row/col
         row = (choice - 1) // 3
         col = (choice - 1) % 3
 
-        # Check if the cell is empty
-        if game_board[row][col] != " ":
-            print("That block is already taken. Choose another.")
+        if isinstance(game_board[row][col], str):
+            print("That block is already taken. Try another.")
             continue
 
         game_board[row][col] = role
-        return role # success
+        return  # success
 
 
 def next_move(board , count , robot_role):
@@ -74,21 +71,20 @@ def game():
         [7 , 8 , 9]
     ]
     print(f"You are playing as '{game_role}'")
-    print("To write coordinates you should first write row and then column (write the name of the block)")
-    show_board(game_board)
     if game_role == "X": 
-        print("You are playing as X and you should be starting ...")
-        while game_status == None: 
-            choice_maker(game_board , game_role)
+         while game_status == None: 
             show_board(game_board)
-            next_move(game_board , turn_counter , "X" if game_role == "O" else "O")
+            game_board = choice_maker(game_board , game_role)
+            show_board(game_board)
+            game_board = next_move(game_board , turn_counter , "X" if game_role == "O" else "O")
             show_board(game_board)
 
     if game_role == "O": 
         print("Your opponent is the one who starts the game ...")
         while game_status == None:
+            game_board = next_move(game_board , turn_counter , "X" if game_role == "O" else "O")
             show_board(game_board)
-            print(next_move(game_board , turn_counter , "X" if game_role == "O" else "O"))
-            choice_maker(game_board, game_role)
+            game_board = choice_maker(game_board, game_role)
+            show_board(game_board)
 
 print(game())
