@@ -102,7 +102,7 @@ class Game:
 
         return None
 
-    # ---------------- Game Evaluator --------------------
+    # Game Evaluator
     def game_eval(self):
         """Evaluates the game and returns 1 if X has won or can win in only one move and it is his turn 
         (and O can't do anything about it) and -1, if this is happening with O and 0 if the game is ongoing and
@@ -145,7 +145,7 @@ class Game:
         return None
 
         
-    # ---------------- Main Game Loop --------------------
+    # Main Game Loop
     def play(self):
         """This function puts all of the other functions together and makes the game alive"""
         # Choose the player's and robot's symbol randomly
