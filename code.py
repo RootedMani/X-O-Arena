@@ -4,7 +4,7 @@ class Game:
     def __init__(self):
         self.board = [[" " for i in range(3)] for i in range(3)]
         self.player = None
-        self.robot = "O"
+        self.robot = None
 
     # ---------------- Display Board --------------------
     def show_board(self):
@@ -53,8 +53,9 @@ class Game:
     
     def inter_mode(self):
         """The AI model for the intermediate level of the game."""
-        if self.one_move_win(self.robot) == None:
-            pass
+        if self.one_move_win(self.player):
+            coor = self.one_move_win(self.player)
+            self.board[coor[0],coor[1]] = self.player
     
     def hard_mode(self): 
         """The AI model for the hard level of the game"""
@@ -187,7 +188,7 @@ class Game:
                 self.show_board()
                 status = self.check_winner()
 
-        # IF the player's symbol is O
+        # If the player's symbol is O
         else:
             print("Robot starts the game!")
             while status is None:
