@@ -7,7 +7,7 @@ class Game:
         self.robot = "X"
         self.turn = None
 
-    # ---------------- Display Board --------------------
+    # Display board
     def show_board(self):
         col_width = max(len(str(x)) for row in self.board for x in row)
         top = "┌" + "┬".join("─"*(col_width+2) for _ in self.board[0]) + "┐"
@@ -21,7 +21,7 @@ class Game:
                 print(middle)
         print(bottom)
 
-    # ---------------- Player Move --------------------
+    # Player move
     def choice_maker(self):
         while True:
             try:
@@ -44,7 +44,7 @@ class Game:
 
             self.board[row][col] = self.player
             return
-    def easy_mode(self):
+    def easy_mode(self): # Powered by TMC 1.0 Lite
         """AI model for the easy level of the game"""
         for i in range(3):
             for j in range(3):
@@ -52,7 +52,7 @@ class Game:
                     self.board[i][j] = self.robot
                     return
     
-    def inter_mode(self):
+    def inter_mode(self): # Powered by TMC 1.0 I (Under development)
         """The AI model for the intermediate level of the game. turn : X or O, is necessery for it to work"""
         move = self.one_move_win(self.turn)
         if move:
@@ -60,15 +60,15 @@ class Game:
             self.board[r][c] = self.turn
             return
     
-    def hard_mode(self): 
+    def hard_mode(self): # Powered by TMC 1.0 Pro (Under development)
         """The AI model for the hard level of the game"""
         pass
     
-    def impossible_mode(self): 
+    def impossible_mode(self): # The most powerful model powered by TMC 1.0 Max (Under development)
         """The AI model for impoossible level of the game"""
         pass
 
-    # ---------------- Robot Move (simple) --------------------
+    # Robot move (Powered by "TMC 1.0")
     def next_move(self , difficulty):
         """Puts together all of the algorithms and run one of them when needed. the parameter turn is needed (X or O)"""
         if self.difficulty == 1 :
@@ -81,7 +81,7 @@ class Game:
             self.impossible_mode()
         
 
-    # ---------------- Winner Check --------------------
+    # Winner check
     def check_winner(self):
         """Checks if one side has won (Returns X if X is won and O if O is won) and None if
         no side won"""
@@ -97,7 +97,6 @@ class Game:
             if line[0] in ("X", "O") and line.count(line[0]) == 3:
                 return line[0]
 
-        # Fixed tie logic
         if all(cell != " " for row in self.board for cell in row):
             return "Tie"
 
@@ -214,14 +213,12 @@ class Game:
                 self.show_board()
                 status = self.check_winner()
 
-    # -----------------------------
     # End game output
-    # -----------------------------
         if status == "Tie":
             print("It's a tie!")
         else:
             print(f"The winner is: {status}")
 
-# ---------------- Run Game --------------------
+# Run game
 if __name__ == "__main__":
     Game().play()
