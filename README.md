@@ -19,7 +19,7 @@ Here are the features I aim to add:
 
 🖥 A graphical user interface (GUI) so anyone can play easily
 
-🎨 Optional: polished UI themes, animations, sound effects, etc.
+🎨 polished UI themes, animations, sound effects, etc.
 
 🔓 Open Source
 
