@@ -1,239 +1,231 @@
 import random
+from math import inf
 
 class Game:
     def __init__(self):
-        self.board = [[" " for i in range(3)] for i in range(3)]
+        self.board = [[" " for _ in range(3)] for _ in range(3)]
         self.player = None
         self.robot = None
         self.turn = None
+        self.difficulty = None
 
     # Display board
     def show_board(self):
-        # Build main board
-        col_width = max(len(str(x)) for row in self.board for x in row)
+        col_width = 1
         top = "┌" + "┬".join("─"*(col_width+2) for _ in range(3)) + "┐"
         middle = "├" + "┼".join("─"*(col_width+2) for _ in range(3)) + "┤"
         bottom = "└" + "┴".join("─"*(col_width+2) for _ in range(3)) + "┘"
 
-        # Build reference board (constant)
-        ref = [
-            ["1","2","3"],
-            ["4","5","6"],
-            ["7","8","9"]
-        ]
+        ref = [["1","2","3"],["4","5","6"],["7","8","9"]]
 
-        # Draw header
         print("Current Board:".ljust(30) + "Reference Board:")
-
-        # Print top borders
         print(top.ljust(30) + top)
 
-        # Print rows side-by-side
         for i in range(3):
-            left_row = "│ " + " │ ".join(str(x).ljust(col_width) for x in self.board[i]) + " │"
-            right_row = "│ " + " │ ".join(ref[i]) + " │"
-            print(left_row.ljust(30) + right_row)
-
+            left = "│ " + " │ ".join(self.board[i]) + " │"
+            right = "│ " + " │ ".join(ref[i]) + " │"
+            print(left.ljust(30) + right)
             if i < 2:
                 print(middle.ljust(30) + middle)
 
-        # Bottom borders
         print(bottom.ljust(30) + bottom)
 
-    # Reades all the lines diagonal and horizontal and vertical
+    # Lines helper
     def get_lines(self):
-        """Reades all of the lines : diagonal - horizontal - vertical"""
         return (
             self.board +
             [list(col) for col in zip(*self.board)] +
             [[self.board[i][i] for i in range(3)]] +
-            [[self.board[i][2-i] for i in range(3)]])
-    
+            [[self.board[i][2-i] for i in range(3)]]
+        )
+
     # Player move
     def choice_maker(self):
         while True:
             try:
-                choice = int(input("Enter the block you want to place your move in (1-9): "))
+                choice = int(input("Enter a block (1-9): "))
             except ValueError:
-                print("Please enter a valid integer.")
+                print("Invalid input.")
                 continue
 
             if not 1 <= choice <= 9:
-                print("Choose a number between 1 and 9.")
+                print("Choose 1-9.")
                 continue
 
             row = (choice - 1) // 3
             col = (choice - 1) % 3
 
-            # Correct empty check
             if self.board[row][col] != " ":
-                print("That block is already taken. Try another.")
+                print("That block is taken.")
                 continue
 
             self.board[row][col] = self.player
             return
-        
-    def easy_mode(self): # Powered by TMC 1.0 Lite
-        """AI model for the easy level of the game"""
-        for i in range(3):
-            for j in range(3):
-                if self.board[i][j] == " ":
-                    self.board[i][j] = self.robot
-                    return
-    
-    def inter_mode(self): # Powered by TMC 1.0 I
-        """The AI model for the intermediate level of the game. turn : X or O, is necessery for it to work"""
-        # Attack
+
+    # Evaluate winner
+    def check_winner(self):
+        for line in self.get_lines():
+            if line[0] in ("X","O") and line.count(line[0]) == 3:
+                return line[0]
+        if all(cell != " " for row in self.board for cell in row):
+            return "Tie"
+        return None
+
+    # Minimax evaluation scoring
+    def evaluate_board(self):
+        winner = self.check_winner()
+        if winner == self.robot:
+            return +10
+        if winner == self.player:
+            return -10
+        return 0
+
+    # Get empty spots
+    def get_moves(self):
+        return [(r,c) for r in range(3) for c in range(3) if self.board[r][c] == " "]
+
+    # Minimax
+    def minimax(self, depth, is_maximizing):
+        score = self.evaluate_board()
+        if score != 0:
+            return score - depth if score > 0 else score + depth
+
+        if not self.get_moves():
+            return 0
+
+        if is_maximizing:
+            best = -inf
+            for r,c in self.get_moves():
+                self.board[r][c] = self.robot
+                best = max(best, self.minimax(depth+1, False))
+                self.board[r][c] = " "
+            return best
+
+        else:
+            best = 999
+            for r,c in self.get_moves():
+                self.board[r][c] = self.player
+                best = min(best, self.minimax(depth+1, True))
+                self.board[r][c] = " "
+            return best
+
+    # Easy mode
+    def easy_mode(self):
+        moves = self.get_moves()
+        if moves:
+            r,c = moves[0]
+            self.board[r][c] = self.robot
+
+    # One move win
+    def one_move_win(self):
+        for r,c in self.get_moves():
+            self.board[r][c] = self.turn
+            if self.check_winner() == self.turn:
+                self.board[r][c] = " "
+                return (r,c)
+            self.board[r][c] = " "
+        return None
+
+    # Intermediate mode
+    def inter_mode(self):
         move = self.one_move_win()
         if move:
-            r, c = move
+            r,c = move
             self.board[r][c] = self.turn
             return
-        # Defense
+
         opponent = "X" if self.turn == "O" else "O"
         lines = self.get_lines()
-        line_coords = [
-            [(i, j) for j in range(3)] for i in range(3)                 # rows
-        ] + [
-            [(i, j) for i in range(3)] for j in range(3)                 # columns
-        ] + [
-            [(i, i) for i in range(3)]                                   # main diagonal
-        ] + [
-            [(i, 2-i) for i in range(3)]                                 # anti diag
-        ]
-        for line, coords in zip(lines, line_coords):
+        line_coords = (
+            [[(0,0),(0,1),(0,2)],[(1,0),(1,1),(1,2)],[(2,0),(2,1),(2,2)]] +
+            [[(0,0),(1,0),(2,0)],[(0,1),(1,1),(2,1)],[(0,2),(1,2),(2,2)]] +
+            [[(0,0),(1,1),(2,2)]] +
+            [[(0,2),(1,1),(2,0)]]
+        )
+
+        for line,coords in zip(lines,line_coords):
             if line.count(opponent) == 2 and line.count(" ") == 1:
                 idx = line.index(" ")
-                r, c = coords[idx]
+                r,c = coords[idx]
                 self.board[r][c] = self.turn
                 return
-        self.easy_mode()
-    
-    def hard_mode(self): # Powered by TMC 1.0 Pro (Under development)
-        """The AI model for the hard level of the game"""
-        pass
-        
-    def impossible_mode(self): # The most powerful model powered by TMC 1.0 Max (Under development)
-        """The AI model for impoossible level of the game"""
-        
 
-    # Robot move (Powered by "TMC 1.0")
+        self.easy_mode()
+
+    # Hard = minimax with depth limit
+    def hard_mode(self):
+        best_score = -999
+        best_move = None
+        for r,c in self.get_moves():
+            self.board[r][c] = self.robot
+            score = self.minimax(0, False)
+            self.board[r][c] = " "
+            if score > best_score:
+                best_score = score
+                best_move = (r,c)
+        if best_move:
+            r,c = best_move
+            self.board[r][c] = self.robot
+
+    # Impossible full minimax
+    def impossible_mode(self):
+        best_score = -999
+        best_move = None
+        for r,c in self.get_moves():
+            self.board[r][c] = self.robot
+            score = self.minimax(0, False)
+            self.board[r][c] = " "
+            if score > best_score:
+                best_score = score
+                best_move = (r,c)
+        if best_move:
+            r,c = best_move
+            self.board[r][c] = self.robot
+
     def next_move(self):
-        """Puts together all of the algorithms and run one of them when needed. the parameter turn is needed (X or O)"""
-        if self.difficulty == 1 :
+        if self.difficulty == 1:
             self.easy_mode()
         elif self.difficulty == 2:
             self.inter_mode()
-        elif self.difficulty == 3: 
+        elif self.difficulty == 3:
             self.hard_mode()
-        elif self.difficulty == 4: 
+        elif self.difficulty == 4:
             self.impossible_mode()
-        
 
-    # Winner check
-    def check_winner(self):
-        """Checks if one side has won (Returns X if X is won and O if O is won) and None if
-        no side won"""
-        # Winner detection
-        for line in self.get_lines():
-            if line[0] in ("X", "O") and line.count(line[0]) == 3:
-                return line[0]
-
-        if all(cell != " " for row in self.board for cell in row):
-            return "Tie"
-
-        return None
-
-    # Game Evaluator
-    def game_eval(self):
-        """Evaluates the game and returns 1 if X has won or can win in only one move and it is his turn 
-        (and O can't do anything about it) and -1, if this is happening with O and 0 if the game is ongoing and
-        none of the conditions are true."""
-        winner = self.check_winner()
-        if winner == "X":
-            return 1
-        if winner == "O":
-            return -1
-        if winner == "Tie" or winner is None:
-            return 0
-
-        for line in self.lines:
-            if line.count("X") == 2 and line.count(" ") == 1 and self.turn == "X":
-                return 1
-            if line.count("O") == 2 and line.count(" ") == 1 and self.turn == "O":
-                return -1
-        # if none worked :
-        return 0
-     
-    def one_move_win(self):
-        """Returns a tuple in which the first index is the row and the second index is the column where
-        if you mark you will instantly win and if there is no move which win instantly it will return None"""
-        # Try every empty cell
-        for i in range(3):
-            for j in range(3):
-                if self.board[i][j] == " ":
-                    self.board[i][j] = self.turn
-                    if self.check_winner() == self.turn:
-                        self.board[i][j] = " "
-                        return (i, j)
-                    self.board[i][j] = " "
-        return None
-
-        
-    # Main Game Loop
+    # Main loop
     def play(self):
-        """This function puts all of the other functions together and makes the game alive"""
-        # Choose the player's and robot's symbol randomly
-        self.player = random.choice(["X" , "O"])
+        self.player = random.choice(["X","O"])
         self.robot = "X" if self.player == "O" else "O"
-        # Inform the player about their symbol and if they start the game
-        print(f"You are playing as '{self.player}'")
-        if self.player == "O":
-            print("Your opponent starts the game...")
+        print(f"You are '{self.player}'")
 
-        # Take the difficulty level from the user and call the correct function
-        # We will know which difficulty is the player intrested in playing after this part
-        while True: 
+        while True:
             try:
-                difficulty = int(input("Choose a difficulty (1:Easy-2:Intermediate-3:Hard-4:Impossible): "))
-                if difficulty in (1 , 2 , 3 , 4): 
-                    self.difficulty = difficulty
+                diff = int(input("Choose difficulty (1-4): "))
+                if diff in (1,2,3,4):
+                    self.difficulty = diff
                     break
-                else: 
-                    print("")
-            except ValueError:
-                print("Something was wrong about your input's value. Note that only integer from 1 to 4 is allowed and Please try again")
-        
-        # showing the user the initial board
+            except:
+                pass
+
         self.show_board()
-        
-        """Define the initial game status to None (It can be changed to the winner's symbol later with
-        the output of the function check winner or it can be "Tie")"""
         status = None
 
-        # Game's main loop
         if self.player == "X":
-            while status == None:
-                # Player turn
-                self.turn = "X"
-                self.choice_maker()
-                self.show_board()
-                status = self.check_winner()
-                if status:
-                    break
-
-                # Robot turn
-                print("Robot's turn:")
-                self.turn = "O"
-                self.next_move()
-                self.show_board()
-                status = self.check_winner()
-
-        # If the player's symbol is O
-        else:
-            print("Robot starts the game!")
             while status is None:
-                # Robot goes first
+                self.turn = "X"
+                self.choice_maker()
+                self.show_board()
+                status = self.check_winner()
+                if status:
+                    break
+                print("Robot's turn:")
+                self.turn = "O"
+                self.next_move()
+                self.show_board()
+                status = self.check_winner()
+        else:
+            print("Robot starts:")
+            while status is None:
                 print("Robot's turn:")
                 self.turn = "X"
                 self.next_move()
@@ -241,19 +233,14 @@ class Game:
                 status = self.check_winner()
                 if status:
                     break
-
-                # Player turn
                 self.turn = "O"
                 self.choice_maker()
                 self.show_board()
                 status = self.check_winner()
 
-    # End game output
-        if status == "Tie":
-            print("It's a tie!")
-        else:
-            print(f"The winner is: {status}")
+        if status == "Tie": print("It's a tie!")
+        else: print(f"Winner: {status}")
 
-# Run game
+
 if __name__ == "__main__":
     Game().play()
