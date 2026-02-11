@@ -3,29 +3,19 @@
 X-O Arena is an open-source Tic-Tac-Toe experience where you face off against a built-in robot opponent.
 The project is actively under development and will evolve significantly in the near future.
 
-🚧 Project Status
+Project Status
 
-This game is currently in early development. Many major improvements and experimental features are planned.
+This project is now fully done and it is not under active development unless a bug is reported.
 
-✨ Planned Features
+features that may be added in the future: 
+1. GUI: a graphical user interface may be added to enhance the user experience
+2. Other features that users may ask
 
-Here are the features I aim to add:
-
-🤖 A world-class X-O AI
-
-🎚 Multiple difficulty levels
-
-🔓 Open-source AI models for every difficulty level
-
-🖥 A graphical user interface (GUI) so anyone can play easily
-
-🎨 polished UI themes, animations, sound effects, etc.
-
-🔓 Open Source
+Open Source
 
 X-O Arena is completely open source and free to use.
 Contributions, suggestions, and ideas are welcome as the project grows!
 
-🙌 Want to Contribute?
+Want to Contribute?
 
 Feel free to open issues, suggest features, or submit pull requests!
